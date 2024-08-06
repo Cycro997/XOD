@@ -1,6 +1,6 @@
 {
     "repos": {
-        "cybasic": "https://github.com/cycro997/CyBASIC"
+        "xod": "https://github.com/cycro997/XOD"
     },
     "vars": {
         ".global": null
