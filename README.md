@@ -5,6 +5,12 @@
 Creates a new package
 ### help
 Used for getting help
+### get
+Used for getting a variable
+### set
+Used for setting a variable
+### install
+Used for installing a package. 
 ## Package types
 ### install
 Packages used solely for installations. 
