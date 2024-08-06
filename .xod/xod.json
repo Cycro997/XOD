@@ -1,0 +1,15 @@
+{
+    "name": "XOD",
+    "description": "Xod package manager",
+    "version": "v0.0.1",
+    "programming-lang": "python",
+    "author": "Cycro997",
+    "repo-url": null,
+    "entry": null,
+    "test-entry": null,
+    "docs": null,
+    "type": "install",
+    "entry-cmd-posix": null,
+    "entry-cmd-nt": null,
+    "dependencies": []
+}

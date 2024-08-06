@@ -1,0 +1,8 @@
+{
+    "repos": {
+        "cybasic": "https://github.com/cycro997/CyBASIC"
+    },
+    "vars": {
+        ".global": null
+    }
+}
