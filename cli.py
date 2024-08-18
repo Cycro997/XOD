@@ -1,8 +1,11 @@
-import GitHubDownloader as ghdl
+import git
 import sys
 import os
 import json
 import settings
+import shutil
+import __init__ as xod
+import copy
 
 cli_args = sys.argv[1:]
 if len(cli_args) == 0:
@@ -17,49 +20,11 @@ def process_cmd():
         if len(cli_args) == 1:
             return False
         return cli_args[1] == "--help"
-    def is_var(text: str):
-        return text.startswith(".")
-    def get_var(var: str):
-        special = [".self", ".xod-dir"]
-        if var not in special:
-            if "/" in var:
-                raise ValueError("Variable name cannot contain slashes")
-            settings.get_setting(f"vars/{var}")
-        else:
-            match var:
-                case ".self":
-                    return {
-                        "type": "package",
-                        "path": get_current_package()
-                    }
-                case ".xod-dir":
-                    return {
-                        "type": "package",
-                        "path": path
-                    }
-    def parse_var(text: str):
-        if is_var(text):
-            return get_var(text)
-        if text.startswith("\\."):
-            text = text[1:]
-        return text
-    def get_current_package():
-        if os.path.isfile(f"{cwd}/.xod/xod.json"):
-            return cwd
-        elif (global_ := settings.get_setting("vars/.global")) != None:
-            return global_["path"]
-        else:
-            raise ValueError("Not in project")
 
     match command:
         case "init":
             if not first_arg_is_help():
-                try:
-                    os.mkdir("./.xod")
-                except FileExistsError:
-                    print("Project already exists", file=sys.stderr)
-                    return
-                config = {}
+                config = copy.copy(xod.Package.default_data)
                 inp = None
 
                 print("Creating a xod package.")
@@ -100,12 +65,10 @@ def process_cmd():
                 config["entry-cmd-posix"] = inp
                 inp = input("Entry command (nt) [null]> ") or None
                 config["entry-cmd-nt"] = inp
-                config["dependencies"] = []
 
-                with open("./.xod/xod.json", "w") as package_json:
-                    package_json.write(json.dumps(config, indent=4))
-                
-                os.mkdir("./.xod/packages")
+                package = xod.Package(".")
+                package.init(config)
+
             else:
                 print("xod init")
                 print("Creates a new xod package")
@@ -126,7 +89,7 @@ def process_cmd():
                     print("Expected variable", file=sys.stderr)
                     return
                 try:
-                    cli_args[2] = parse_var(cli_args[2])
+                    cli_args[2] = xod.parse_var(cli_args[2])
                 except KeyError as err:
                     print(err, file=sys.stderr)
                 settings.set_setting(f"vars/{cli_args[1]}", cli_args[2])
@@ -141,7 +104,7 @@ def process_cmd():
             if not first_arg_is_help():
                 try:
                     if cli_args[1].startswith("."):
-                        print(get_var(cli_args[1]))
+                        print(xod.get_var(cli_args[1]))
                     else:
                         print(
                             "Variable name must start with '.'",
@@ -164,16 +127,22 @@ def process_cmd():
         case "install":
             if not first_arg_is_help():
                 name = cli_args[1]
-                package_dir_path = f"{get_current_package()}/.xod/packages"
-                install_path = f"{package_dir_path}/{name}"
-                if name not in settings.get_setting(f"repos"):
-                    print("Unknown package", file=sys.stderr)
-                    return
-                repo = settings.get_setting(f"repos/{name}")
-                downloader = ghdl.Downloader(repo)
-                downloader.download(install_path, "*")
-                print(install_path)
+                package = xod.Package(cwd, True)
+                package.fill()
+                package.install(name)
             else:
+                print("xod install")
+                print(
+                    "Installs the package whose name is the 1st "
+                    "argument."
+                )
+        case "remove":
+            if not first_arg_is_help():
+                name = cli_args[1]
+                name = cli_args[1]
+                package = xod.Package(cwd, True)
+                package.fill()
+                package.remove(name)
                 print("xod install")
                 print(
                     "Installs the package whose name is the 1st "
